@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: .
+    container_name: tasks-api
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      # Monta el código fuente local dentro del contenedor para que los
+      # cambios se reflejen en vivo sin reconstruir la imagen.
+      - .:/app
+      # Persiste el archivo de SQLite fuera del contenedor: aunque el
+      # contenedor se destruya, los datos sobreviven en ./data.
+      - ./data:/app/data
+    restart: unless-stopped

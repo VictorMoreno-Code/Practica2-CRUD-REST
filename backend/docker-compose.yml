@@ -3,7 +3,7 @@ services:
     build: .
     container_name: tasks-api
     ports:
-      - "5000:5000"
+    - "0.0.0.0:5000:5000"
     env_file:
       - .env
     volumes:

@@ -44,9 +44,6 @@ import org.json.JSONObject
 import retrofit2.Response
 import com.outlook.victoreduardo.aplicacionmovilbasica.ui.theme.AplicacionMovilBasicaTheme
 
-// ---------------------------------------------------------------------------
-// Navegación simple basada en estado (sin Navigation Compose)
-// ---------------------------------------------------------------------------
 
 private enum class Screen(val label: String) {
     LOGIN("Inicio de Sesión"),
@@ -67,9 +64,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Raíz de la app: Scaffold + TopAppBar con menú desplegable
-// ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -299,9 +293,7 @@ private fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Pantalla de Login
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun LoginScreen(onLoginSuccess: (token: String) -> Unit) {
@@ -390,9 +382,7 @@ private fun LoginScreen(onLoginSuccess: (token: String) -> Unit) {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Pantalla CRUD
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun CrudScreen(token: String) {

@@ -12,9 +12,9 @@
 | **Unidad de aprendizaje** | Desarrollo de aplicaciones móviles nativas |
 | **Práctica** | Práctica 2: Aplicación móvil básica para operaciones CRUD con un servicio REST |
 | **Alumno** | Moreno López Victor Eduardo |
-| **Número de boleta** | `__________________` <!-- TODO: escribe aquí tu boleta --> |
+| **Número de boleta** | `2024630639` <!-- TODO: escribe aquí tu boleta --> |
 | **Grupo** | 7CV4 |
-| **Profesor** | `__________________` <!-- TODO: escribe aquí el nombre del profesor --> |
+| **Profesor** | `Gabriel Hurtado Avilés` <!-- TODO: escribe aquí el nombre del profesor --> |
 | **Fecha de entrega** | 18 de septiembre de 2026 |
 | **Repositorio** | https://github.com/VictorMoreno-Code/Practica2-CRUD-REST |
 

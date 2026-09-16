@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------------------
+# .gitignore de la raíz del repositorio.
+# Cada tecnología tiene además su propio .gitignore:
+#   - android/.gitignore  (Gradle / Android Studio)
+#   - backend/.gitignore  (Python / Docker / secretos)
+# ---------------------------------------------------------------------------
+
+# Archivos de configuración local de IntelliJ / Android Studio: son propios
+# de cada máquina y no aportan nada al proyecto.
+.idea/
+*.iml
+
+# Caché de Gradle
+.gradle/
+build/
+
+# Secretos: nunca deben subirse.
+.env
+*.env
+!*.env.example
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini

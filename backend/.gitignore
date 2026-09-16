@@ -1,6 +1,17 @@
+# Secretos: el .env real NUNCA se sube (solo se publica .env.example).
+.env
+
+# Base de datos y datos generados en tiempo de ejecución.
+data/
+instance/
+*.db
+*.sqlite3
+
+# Python
 __pycache__/
 *.pyc
-.env
-data/
 venv/
+.venv/
+
+# IDE
 .idea/

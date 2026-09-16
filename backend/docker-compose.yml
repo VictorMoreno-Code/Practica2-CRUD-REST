@@ -1,16 +1,60 @@
+# ---------------------------------------------------------------------------
+# Orquestación del backend REST.
+#
+# Objetivo de diseño: que en un equipo LIMPIO (solo con Docker instalado)
+# baste con ejecutar, desde esta carpeta:
+#
+#     docker compose up --build
+#
+# sin ningún paso previo, sin crear archivos y sin editar nada.
+#
+# Para lograrlo, las variables de entorno NO se leen con "env_file" (que
+# obligaría a que exista un archivo .env y hace fallar el comando si no
+# está), sino con interpolación con valor por defecto: ${VARIABLE:-valor}.
+# Docker Compose lee automáticamente un archivo .env de esta carpeta SI
+# existe; si no existe, simplemente se usan los valores por defecto.
+# ---------------------------------------------------------------------------
+
 services:
   backend:
+    # Construye la imagen a partir del Dockerfile de esta misma carpeta.
     build: .
+    image: practica2-tasks-api
     container_name: tasks-api
+
+    # Publica el puerto 5000 del contenedor en el puerto 5000 del equipo
+    # anfitrión, en todas sus interfaces de red (necesario para que un
+    # dispositivo físico de la misma red pueda alcanzarlo).
     ports:
-    - "0.0.0.0:5000:5000"
-    env_file:
-      - .env
+      - "5000:5000"
+
+    environment:
+      # Vacío por defecto: app.py calcula solo la ruta absoluta
+      # /app/data/app.db, que es justamente la carpeta persistida abajo.
+      DATABASE_URL: ${DATABASE_URL:-}
+      # Vacío por defecto: app.py genera una llave aleatoria al arrancar y
+      # avisa por consola. Así el proyecto levanta sin configuración previa
+      # y, al mismo tiempo, NINGÚN secreto queda escrito en el repositorio.
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      # Minutos de vigencia del token de acceso (sesión con expiración).
+      JWT_ACCESS_TOKEN_EXPIRES_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:-60}
+      # Modo debug apagado por defecto (no se filtran trazas internas).
+      FLASK_DEBUG: ${FLASK_DEBUG:-false}
+
     volumes:
-      # Monta el código fuente local dentro del contenedor para que los
-      # cambios se reflejen en vivo sin reconstruir la imagen.
-      - .:/app
-      # Persiste el archivo de SQLite fuera del contenedor: aunque el
-      # contenedor se destruya, los datos sobreviven en ./data.
+      # Único volumen necesario: persiste el archivo SQLite fuera del
+      # contenedor. Aunque el contenedor se destruya y se vuelva a crear,
+      # los usuarios y las tareas siguen ahí.
       - ./data:/app/data
+
+    # Comprueba cada 10 s que la API responde. "docker compose ps" muestra
+    # el contenedor como "healthy" cuando el endpoint raíz contesta 200.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3).status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    # Si el contenedor se cae o se reinicia la máquina, vuelve a levantarse.
     restart: unless-stopped

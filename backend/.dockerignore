@@ -1,0 +1,11 @@
+# Evita que secretos, la base de datos local y basura de desarrollo se
+# copien dentro de la imagen durante el "COPY . ." del Dockerfile.
+.env
+data/
+instance/
+__pycache__/
+*.pyc
+venv/
+.venv/
+.git/
+.gitignore

@@ -14,6 +14,7 @@ respuesta nunca reciba HTML ni provoque una excepción de parseo.
 """
 
 import os
+import secrets
 from datetime import timedelta
 
 from dotenv import load_dotenv
@@ -31,30 +32,65 @@ from flask_jwt_extended import (
 # Configuración inicial
 # ---------------------------------------------------------------------------
 
-# Carga las variables definidas en el archivo .env (útil en desarrollo local
-# sin Docker). Dentro del contenedor las variables ya llegan inyectadas por
-# docker-compose vía "env_file", pero llamar a load_dotenv() no causa
-# ningún problema en ese caso.
+# Carga las variables definidas en un archivo .env local (útil cuando se
+# ejecuta sin Docker). Dentro del contenedor las variables ya llegan
+# inyectadas por docker-compose, pero llamar a load_dotenv() no estorba.
 load_dotenv()
 
-# Aseguramos que exista la carpeta donde vivirá el archivo de SQLite, para
-# que el volumen de Docker pueda montarse y persistir los datos sin errores.
-os.makedirs("data", exist_ok=True)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 
-# Nunca se hardcodean secretos: todo se lee desde variables de entorno.
-# Los valores por defecto solo existen para que el proyecto no truene si
-# alguien olvida crear su .env, pero JAMÁS deben usarse en producción.
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL", "sqlite:///data/app.db"
+# ---------------------------------------------------------------------------
+# Base de datos
+# ---------------------------------------------------------------------------
+# IMPORTANTE: Flask-SQLAlchemy 3.x resuelve las rutas SQLite RELATIVAS
+# (p. ej. "sqlite:///data/app.db") contra la carpeta "instance/" de la
+# aplicación, NO contra el directorio de trabajo. Por eso aquí se construye
+# siempre una ruta ABSOLUTA: así el archivo de la base cae exactamente en
+# /app/data/app.db dentro del contenedor, que es la carpeta montada como
+# volumen en docker-compose.yml y, por lo tanto, la que realmente persiste.
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "data", "app.db")
+DATABASE_URL = os.getenv("DATABASE_URL") or "sqlite:///" + DEFAULT_DB_PATH.replace(
+    os.sep, "/"
 )
+
+# Se crea la carpeta destino antes de que SQLAlchemy intente abrir el archivo.
+if DATABASE_URL.startswith("sqlite:///"):
+    db_file = DATABASE_URL.replace("sqlite:///", "", 1)
+    os.makedirs(os.path.dirname(db_file) or ".", exist_ok=True)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
+
+# ---------------------------------------------------------------------------
+# Llave de firma de los tokens (sesión segura)
+# ---------------------------------------------------------------------------
+# Ningún secreto está escrito en el código ni subido al repositorio. Si la
+# variable de entorno JWT_SECRET_KEY no viene definida, se genera una llave
+# aleatoria para esta ejecución: el proyecto levanta sin configuración previa
+# (basta "docker compose up --build") y aun así no hay secretos versionados.
+# El costo es que, al reiniciar el contenedor, los tokens emitidos antes
+# dejan de ser válidos y hay que iniciar sesión de nuevo; para evitarlo basta
+# definir JWT_SECRET_KEY en un archivo .env (ver .env.example).
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or ""
+if not JWT_SECRET_KEY:
+    JWT_SECRET_KEY = secrets.token_hex(32)
+    print(
+        "[AVISO] JWT_SECRET_KEY no definida: se generó una llave aleatoria "
+        "solo para esta ejecución. Define JWT_SECRET_KEY en backend/.env si "
+        "quieres que las sesiones sobrevivan a un reinicio del contenedor.",
+        flush=True,
+    )
+
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 
 # Tiempo de expiración del token de acceso, configurable por variable de
 # entorno. Esto es lo que hace que la "sesión" tenga un límite de tiempo.
-jwt_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
+try:
+    jwt_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES") or 60)
+except ValueError:
+    jwt_expire_minutes = 60
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=jwt_expire_minutes)
 
 db = SQLAlchemy(app)
@@ -345,5 +381,5 @@ def delete_task(task_id):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    debug_mode = os.getenv("FLASK_DEBUG", "true").lower() == "true"
+    debug_mode = (os.getenv("FLASK_DEBUG") or "false").lower() == "true"
     app.run(host="0.0.0.0", port=5000, debug=debug_mode)

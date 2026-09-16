@@ -1,27 +1,21 @@
 /*
  * MainActivity.kt
  *
- * Interfaz completa en Jetpack Compose (Material 3) para consumir la API
- * REST de tareas (Flask + JWT). Este archivo asume que YA EXISTEN y están
- * listos para usarse (no se generan aquí):
+ * Interfaz completa de la aplicación en Jetpack Compose (Material 3).
  *
- *   - RetrofitClient.apiService, con los métodos suspend:
- *       register(request: AuthRequest): Response<ApiResponse>
- *       login(request: AuthRequest): Response<AuthResponse>
- *       getTasks(token: String): Response<TasksListResponse>
- *       createTask(token: String, request: TaskRequest): Response<SingleTaskResponse>
- *       updateTask(token: String, id: Int, request: TaskRequest): Response<SingleTaskResponse>
- *       deleteTask(token: String, id: Int): Response<ApiResponse>
- *   - Modelos (definidos en Models.kt): AuthRequest, TaskRequest, TaskDto
- *     (id, title, description, status), AuthResponse (con access_token),
- *     ApiResponse (wrapper genérico de mensaje/estado), TasksListResponse
- *     (contiene "tasks": List<TaskDto>), SingleTaskResponse (contiene "task": TaskDto).
+ * Estructura:
+ *   - AppRoot        : Scaffold con la barra superior y el menú de navegación;
+ *                      guarda el token de la sesión activa.
+ *   - LoginScreen    : pantalla de inicio de sesión (POST /login).
+ *   - RegisterScreen : pantalla de registro (POST /register).
+ *   - CrudScreen     : listado de tareas y las cuatro operaciones CRUD
+ *                      (GET/POST/PUT/DELETE sobre /tasks), todas enviando el
+ *                      header "Authorization: Bearer <token>".
  *
- * NOTA IMPORTANTE: apiService devuelve retrofit2.Response<T>, lo que permite
- * inspeccionar el código HTTP real que manda el backend (200, 201, 400, 401,
- * 404) y mostrar el mensaje de error correspondiente.
- *
- * Paquete y tema ya ajustados al proyecto "AplicacionMovilBasica".
+ * Todas las llamadas usan RetrofitClient.apiService, cuyos métodos devuelven
+ * retrofit2.Response<T>. Eso permite leer el código HTTP real que manda el
+ * backend (200, 201, 400, 401, 404) y mostrar el mensaje de error que viene
+ * en el cuerpo JSON, en vez de un mensaje genérico.
  */
 
 package com.outlook.victoreduardo.aplicacionmovilbasica
@@ -50,12 +44,6 @@ import org.json.JSONObject
 import retrofit2.Response
 import com.outlook.victoreduardo.aplicacionmovilbasica.ui.theme.AplicacionMovilBasicaTheme
 
-// Si RetrofitClient y las clases de Models.kt (AuthRequest, TaskRequest, TaskDto,
-// AuthResponse, ApiResponse, TasksListResponse, SingleTaskResponse) viven en un
-// subpaquete distinto (p. ej. .data o .network), agrega aquí sus imports, por ejemplo:
-// import com.outlook.victoreduardo.aplicacionmovilbasica.data.RetrofitClient
-// import com.outlook.victoreduardo.aplicacionmovilbasica.data.*
-
 // ---------------------------------------------------------------------------
 // Navegación simple basada en estado (sin Navigation Compose)
 // ---------------------------------------------------------------------------
@@ -70,8 +58,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Ajusta la ruta del import de arriba si tu tema generado por
-            // Android Studio vive en otro subpaquete.
             AplicacionMovilBasicaTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AppRoot()
@@ -97,6 +83,12 @@ private fun AppRoot() {
         topBar = {
             AppTopBar(
                 currentScreen = currentScreen,
+                isLoggedIn = authToken != null,
+                onLogout = {
+                    authToken = null
+                    currentScreen = Screen.LOGIN
+                    Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                },
                 onSelectScreen = { screen ->
                     if (screen == Screen.CRUD && authToken == null) {
                         Toast.makeText(
@@ -151,6 +143,8 @@ private fun AppRoot() {
 @Composable
 private fun AppTopBar(
     currentScreen: Screen,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
     onSelectScreen: (Screen) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -171,6 +165,18 @@ private fun AppTopBar(
                         onClick = {
                             menuExpanded = false
                             onSelectScreen(screen)
+                        }
+                    )
+                }
+                // La opción de cerrar sesión solo aparece cuando hay una
+                // sesión activa: es parte del manejo de estados de la UI.
+                if (isLoggedIn) {
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text("Cerrar sesión") },
+                        onClick = {
+                            menuExpanded = false
+                            onLogout()
                         }
                     )
                 }

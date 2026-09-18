@@ -185,7 +185,7 @@ Docker instalado.
 Practica2_Moviles/
 ├── README.md                  ← este documento
 ├── .gitignore                 ← reglas generales (IDE, caché, secretos)
-├── docs/                      ← capturas de pantalla de la ejecución
+├── images/                    ← capturas de pantalla de la ejecución
 │
 ├── backend/                   ← SERVICIO REST DOCKERIZADO
 │   ├── app.py                 ← toda la API: modelos, auth y CRUD
@@ -639,142 +639,125 @@ estado** y **cuerpo de la respuesta**.
 
 ### 3.8 Capturas de pantalla de la ejecución
 
-> **Instrucciones para completar esta sección:** toma cada captura, guárdala en la carpeta
-> `docs/` con **exactamente** el nombre de archivo indicado y las imágenes aparecerán solas
-> en este documento. Borra este párrafo cuando termines.
+Todas las imágenes están almacenadas en la carpeta [`images/`](images) del repositorio.
 
-#### A. Backend dockerizado
+#### A. Backend REST dockerizado
 
-**Captura 01 — `docs/01-docker-compose-up.png`**
-Terminal ejecutando `docker compose up --build` desde la carpeta `backend/`, mostrando la
-construcción de la imagen y las líneas finales `Serving Flask app 'app'` y
-`Running on all addresses (0.0.0.0)`.
+**Captura 1 — Levantamiento del entorno.** Ejecución de `docker compose up --build` desde
+la carpeta `backend/` en un equipo con Docker. Se aprecian la construcción de la imagen
+`practica2-tasks-api`, el arranque del contenedor `tasks-api` y las líneas
+`Serving Flask app 'app'`, `Debug mode: off` y `Running on all addresses (0.0.0.0)`. Las
+peticiones `GET / 200` que aparecen cada 10 segundos son el **healthcheck** definido en
+`docker-compose.yml`.
 
-![Backend levantado con docker compose up --build](docs/01-docker-compose-up.png)
+![Backend levantado con docker compose up --build](images/01-backend-docker-compose-up.png)
 
-**Captura 02 — `docs/02-docker-compose-ps.png`**
-Salida de `docker compose ps` mostrando el contenedor `tasks-api` en estado
-`running (healthy)` y el puerto `0.0.0.0:5000->5000/tcp`.
+**Captura 2 — Verificación del endpoint de salud.** Petición `GET /` al servicio desde
+PowerShell. El servidor responde `StatusCode: 200`, `Content-Type: application/json` y el
+cuerpo `{"message":"API de tareas funcionando","status":"ok"}`.
 
-![Estado del contenedor](docs/02-docker-compose-ps.png)
+![Verificación del endpoint raíz](images/02-endpoint-raiz.png)
 
-**Captura 03 — `docs/03-endpoint-raiz.png`**
-Navegador (o `curl`) apuntando a `http://127.0.0.1:5000/` y mostrando el JSON
-`{"status":"ok","message":"API de tareas funcionando"}`.
+#### B. Menú de navegación (Ejercicio 1)
 
-![Verificación del endpoint raíz](docs/03-endpoint-raiz.png)
+**Captura 3 — Menú desplegable.** Menú de la barra superior abierto, mostrando las tres
+opciones exigidas por el enunciado: *Inicio de Sesión*, *Registro de Usuario* y
+*Operaciones CRUD*.
 
-#### B. Navegación de la aplicación
-
-**Captura 04 — `docs/04-menu-navegacion.png`**
-Aplicación abierta con el **menú desplegable de la barra superior desplegado**, mostrando
-las tres opciones: *Inicio de Sesión*, *Registro de Usuario* y *Operaciones CRUD*.
-
-![Menú de navegación](docs/04-menu-navegacion.png)
+<p align="center">
+  <img src="images/03-menu-navegacion.jpg" alt="Menú de navegación" width="300">
+</p>
 
 #### C. Registro de usuario
 
-**Captura 05 — `docs/05-registro-formulario.png`**
-Pantalla *Registro de Usuario* con el formulario lleno (usuario escrito y contraseña
-enmascarada con puntos), **antes** de pulsar *Registrarme*.
-
-![Formulario de registro](docs/05-registro-formulario.png)
-
-**Captura 06 — `docs/06-registro-exitoso.png`**
-Momento en que aparece el Toast **"Usuario registrado correctamente"** (respuesta `201`).
-
-![Registro exitoso](docs/06-registro-exitoso.png)
-
-**Captura 07 — `docs/07-registro-usuario-duplicado.png`**
-Intento de registrar **el mismo nombre de usuario otra vez**, mostrando el Toast
-**"El nombre de usuario ya existe"** (respuesta `400`).
-
-![Registro con usuario duplicado](docs/07-registro-usuario-duplicado.png)
+<table>
+  <tr>
+    <td align="center"><img src="images/04-registro-formulario.jpg" alt="Formulario de registro" width="260"></td>
+    <td align="center"><img src="images/05-registro-exitoso.jpg" alt="Registro exitoso" width="260"></td>
+    <td align="center"><img src="images/06-registro-usuario-duplicado.jpg" alt="Registro con usuario duplicado" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Captura 4.</b> Pantalla <i>Registro de Usuario</i> con el formulario capturado y la contraseña enmascarada.</td>
+    <td align="center"><b>Captura 5.</b> Respuesta <code>201</code>: Toast <i>"Usuario registrado correctamente"</i> y regreso automático a la pantalla de login.</td>
+    <td align="center"><b>Captura 6.</b> Respuesta <code>400</code>: al reintentar con el mismo usuario, Toast <i>"El nombre de usuario ya existe"</i>.</td>
+  </tr>
+</table>
 
 #### D. Inicio de sesión y manejo de credenciales incorrectas
 
-**Captura 08 — `docs/08-login-formulario.png`**
-Pantalla *Inicio de Sesión* con las credenciales capturadas.
+<table>
+  <tr>
+    <td align="center"><img src="images/07-login-formulario.jpg" alt="Formulario de login" width="260"></td>
+    <td align="center"><img src="images/08-login-credenciales-incorrectas.jpg" alt="Credenciales incorrectas" width="260"></td>
+    <td align="center"><img src="images/09-login-exitoso.jpg" alt="Login exitoso" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Captura 7.</b> Pantalla <i>Inicio de Sesión</i> con las credenciales capturadas.</td>
+    <td align="center"><b>Captura 8.</b> <b>Manejo de credenciales incorrectas:</b> con una contraseña equivocada el servidor responde <code>401</code> y la app muestra el mensaje real del backend, <i>"Credenciales inválidas"</i>.</td>
+    <td align="center"><b>Captura 9.</b> Respuesta <code>200</code>: Toast <i>"Inicio de sesión exitoso"</i>, token recibido y navegación automática a <i>Operaciones CRUD</i>.</td>
+  </tr>
+</table>
 
-![Formulario de login](docs/08-login-formulario.png)
+**Captura 10 — Protección de las operaciones CRUD.** Intento de entrar a *Operaciones
+CRUD* desde el menú **sin una sesión activa**: la aplicación lo impide y muestra
+*"Debes iniciar sesión antes de ver tus tareas"*.
 
-**Captura 09 — `docs/09-login-credenciales-incorrectas.png`** ⚠️ *(requerida explícitamente por el enunciado)*
-Intento de iniciar sesión con **contraseña incorrecta**, mostrando el Toast
-**"Credenciales inválidas"** que proviene de la respuesta `401` del servidor.
-
-![Manejo de credenciales incorrectas](docs/09-login-credenciales-incorrectas.png)
-
-**Captura 10 — `docs/10-login-exitoso.png`**
-Inicio de sesión correcto: Toast **"Inicio de sesión exitoso"** y navegación automática a
-la pantalla *Operaciones CRUD*.
-
-![Login exitoso](docs/10-login-exitoso.png)
-
-**Captura 11 — `docs/11-crud-sin-sesion.png`**
-Intento de entrar a *Operaciones CRUD* desde el menú **sin haber iniciado sesión**,
-mostrando el Toast **"Debes iniciar sesión antes de ver tus tareas"**.
-
-![Acceso protegido sin sesión](docs/11-crud-sin-sesion.png)
+<p align="center">
+  <img src="images/10-crud-sin-sesion.jpg" alt="Acceso protegido sin sesión" width="300">
+</p>
 
 #### E. Las cuatro operaciones CRUD
 
-**Captura 12 — `docs/12-read-lista-vacia.png`** *(READ / `GET /tasks`)*
-Pantalla CRUD recién abierta con el mensaje **"No tienes tareas todavía. Usa el botón +
-para crear una."**
+<table>
+  <tr>
+    <td align="center"><img src="images/11-read-lista-vacia.jpg" alt="Lectura inicial" width="260"></td>
+    <td align="center"><img src="images/12-create-dialogo.jpg" alt="Diálogo de creación" width="260"></td>
+    <td align="center"><img src="images/13-create-resultado.jpg" alt="Tareas creadas" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Captura 11 — READ</b> (<code>GET /tasks</code>).<br>Lista recién cargada para un usuario sin tareas: <i>"No tienes tareas todavía."</i></td>
+    <td align="center"><b>Captura 12 — CREATE</b> (<code>POST /tasks</code>).<br>Diálogo <i>Nueva tarea</i> con título y descripción, antes de confirmar.</td>
+    <td align="center"><b>Captura 13 — CREATE</b> (<code>POST /tasks</code>).<br>Respuesta <code>201</code>: Toast <i>"Tarea creada"</i> y las dos tareas ya listadas.</td>
+  </tr>
+</table>
 
-![Lectura inicial sin tareas](docs/12-read-lista-vacia.png)
-
-**Captura 13 — `docs/13-create-dialogo.png`** *(CREATE / `POST /tasks`)*
-Diálogo **"Nueva tarea"** abierto con el título y la descripción capturados, antes de
-pulsar *Crear*.
-
-![Diálogo de creación](docs/13-create-dialogo.png)
-
-**Captura 14 — `docs/14-create-resultado.png`** *(CREATE / `POST /tasks`)*
-Lista mostrando **al menos dos tareas ya creadas** y el Toast **"Tarea creada"**
-(respuesta `201`).
-
-![Tareas creadas y listadas](docs/14-create-resultado.png)
-
-**Captura 15 — `docs/15-update-dialogo.png`** *(UPDATE / `PUT /tasks/<id>`)*
-Diálogo **"Editar tarea"** abierto con el texto ya modificado, antes de pulsar *Guardar*.
-
-![Diálogo de edición](docs/15-update-dialogo.png)
-
-**Captura 16 — `docs/16-update-resultado.png`** *(UPDATE / `PUT /tasks/<id>`)*
-Lista mostrando la tarea **ya actualizada** y el Toast **"Tarea actualizada"**
-(respuesta `200`).
-
-![Tarea actualizada](docs/16-update-resultado.png)
-
-**Captura 17 — `docs/17-delete-resultado.png`** *(DELETE / `DELETE /tasks/<id>`)*
-Lista **después de eliminar** una tarea, con el Toast **"Tarea eliminada"**
-(respuesta `200`).
-
-![Tarea eliminada](docs/17-delete-resultado.png)
+<table>
+  <tr>
+    <td align="center"><img src="images/14-update-dialogo.jpg" alt="Diálogo de edición" width="260"></td>
+    <td align="center"><img src="images/15-update-resultado.jpg" alt="Tarea actualizada" width="260"></td>
+    <td align="center"><img src="images/16-delete-resultado.jpg" alt="Tarea eliminada" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Captura 14 — UPDATE</b> (<code>PUT /tasks/&lt;id&gt;</code>).<br>Diálogo <i>Editar tarea</i> con los campos ya modificados.</td>
+    <td align="center"><b>Captura 15 — UPDATE</b> (<code>PUT /tasks/&lt;id&gt;</code>).<br>Respuesta <code>200</code>: Toast <i>"Tarea actualizada"</i> y la tarea reflejando el cambio.</td>
+    <td align="center"><b>Captura 16 — DELETE</b> (<code>DELETE /tasks/&lt;id&gt;</code>).<br>Respuesta <code>200</code>: Toast <i>"Tarea eliminada"</i> y la tarea desaparecida de la lista.</td>
+  </tr>
+</table>
 
 #### F. Evidencia técnica
 
-**Captura 18 — `docs/18-logcat-authorization.png`**
-Ventana **Logcat** de Android Studio con el log de OkHttp, donde se alcanza a leer la
-cabecera `Authorization: Bearer eyJ…` de una petición a `/tasks` y la respuesta
-`200 OK` con su JSON.
+**Captura 17 — Tráfico real y sesión segura.** Logcat de Android Studio con la traza del
+interceptor de OkHttp: se observa la petición `--> GET http://127.0.0.1:5000/tasks`
+llevando la cabecera `Authorization: Bearer eyJhbGciOiJIUzI1NiIs…` y la respuesta
+`<-- 200 OK … (16ms)` con `Content-Type: application/json`. Esto evidencia tanto el uso
+del token JWT como que la resolución automática del host resolvió a `127.0.0.1`.
 
-![Logcat mostrando el token en la cabecera](docs/18-logcat-authorization.png)
+![Logcat mostrando el token en la cabecera Authorization](images/17-logcat-authorization.png)
 
-**Captura 19 — `docs/19-password-hash.png`**
-Contenido de la tabla `users` de la base de datos (con *DB Browser for SQLite*, o con
-`docker exec tasks-api python -c "..."`), evidenciando que la columna `password_hash`
-guarda un hash **`$2b$12$...`** y **nunca** la contraseña en texto plano.
+**Captura 18 — Contraseñas encriptadas.** Consulta directa a la tabla `users` dentro del
+contenedor (`docker exec -it tasks-api python -c "…SELECT id, username, password_hash…"`).
+Cada registro guarda un hash **bcrypt** con el prefijo `$2b$12$`, que incluye su propia
+sal: **en ningún caso se almacena la contraseña en texto plano**.
 
-![Contraseñas almacenadas como hash bcrypt](docs/19-password-hash.png)
+![Contraseñas almacenadas como hash bcrypt](images/18-password-hash.png)
 
-**Captura 20 — `docs/20-persistencia.png`**
-Prueba de persistencia: terminal con `docker compose down` seguido de
-`docker compose up -d`, y a continuación la app volviendo a iniciar sesión con el **mismo
-usuario** y mostrando **las tareas que ya existían**.
+**Captura 19 — Persistencia de los datos.** Prueba de que el volumen funciona: se ejecuta
+`docker compose down` (que **elimina** el contenedor y la red) y después
+`docker compose up -d`, y la aplicación vuelve a iniciar sesión con el mismo usuario y
+recupera la tarea que ya existía. Los datos sobreviven a la destrucción del contenedor
+porque viven en `./data`, no dentro de él.
 
-![Persistencia de los datos tras recrear el contenedor](docs/20-persistencia.png)
+![Persistencia de los datos tras recrear el contenedor](images/19-persistencia.png)
 
 ---
 

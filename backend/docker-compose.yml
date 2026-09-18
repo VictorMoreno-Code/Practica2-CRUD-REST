@@ -42,10 +42,12 @@ services:
       FLASK_DEBUG: ${FLASK_DEBUG:-false}
 
     volumes:
-      # Único volumen necesario: persiste el archivo SQLite fuera del
-      # contenedor. Aunque el contenedor se destruya y se vuelva a crear,
-      # los usuarios y las tareas siguen ahí.
-      - ./data:/app/data
+      # VOLUMEN CON NOMBRE (no un montaje de una carpeta del host).
+      # Docker administra este volumen fuera del árbol del proyecto, así que
+      # los datos sobreviven a "docker compose down" y, al mismo tiempo, NO
+      # aparecen dentro del repositorio ni pueden subirse a Git por descuido.
+      # Para borrarlos a propósito: "docker compose down -v".
+      - datos:/app/data
 
     # Comprueba cada 10 s que la API responde. "docker compose ps" muestra
     # el contenedor como "healthy" cuando el endpoint raíz contesta 200.
@@ -58,3 +60,10 @@ services:
 
     # Si el contenedor se cae o se reinicia la máquina, vuelve a levantarse.
     restart: unless-stopped
+
+# ---------------------------------------------------------------------------
+# Declaración del volumen con nombre que usa el servicio. Docker lo crea la
+# primera vez que se levanta el proyecto y lo conserva entre ejecuciones.
+# ---------------------------------------------------------------------------
+volumes:
+  datos:

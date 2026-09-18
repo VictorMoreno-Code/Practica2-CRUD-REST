@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Configuración de seguridad de red.
+
+    Por omisión, Android bloquea todo el tráfico HTTP sin cifrar (cleartext)
+    desde API 28 en adelante. Durante el desarrollo, el backend de esta
+    práctica corre en HTTP dentro de un contenedor local, así que hay que
+    permitirlo de forma explícita.
+
+    Habilitar android:usesCleartextTraffic="true" en el manifiesto lo
+    permitiría para CUALQUIER dominio, lo que es una mala práctica: bastaría
+    un error de configuración para que la app mandara datos sin cifrar a un
+    servidor de internet. En su lugar, aquí el permiso se limita ÚNICAMENTE a
+    las dos direcciones con las que el dispositivo puede alcanzar al equipo
+    de desarrollo; cualquier otro dominio sigue exigiendo HTTPS.
+-->
+<network-security-config>
+
+    <!-- Excepción acotada: solo los hosts del entorno de desarrollo. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Dirección con la que el EMULADOR de Android alcanza al equipo
+             anfitrión donde corre Docker. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+
+        <!-- Puerto redirigido al anfitrión mediante "adb reverse tcp:5000
+             tcp:5000" (emulador o dispositivo físico por USB). -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+    <!-- Todo lo demás: HTTPS obligatorio. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+</network-security-config>

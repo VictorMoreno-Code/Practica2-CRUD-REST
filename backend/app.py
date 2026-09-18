@@ -306,6 +306,26 @@ def get_tasks():
     return jsonify({"tasks": [t.to_dict() for t in tasks]}), 200
 
 
+@app.route("/tasks/<int:task_id>", methods=["GET"])
+@jwt_required()
+def get_task(task_id):
+    """
+    Lee UNA sola tarea por su identificador.
+
+    El filtro por user_id, además de localizar la tarea, garantiza que un
+    usuario no pueda leer las tareas de otro: si el id existe pero pertenece
+    a alguien más, la respuesta es 404 y no 403, para no revelar siquiera
+    que ese registro existe.
+    """
+    user_id = get_current_user_id()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+
+    if task is None:
+        return jsonify({"error": "Tarea no encontrada"}), 404
+
+    return jsonify({"task": task.to_dict()}), 200
+
+
 @app.route("/tasks", methods=["POST"])
 @jwt_required()
 def create_task():

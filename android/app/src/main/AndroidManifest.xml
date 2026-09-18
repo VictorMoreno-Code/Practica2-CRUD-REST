@@ -2,8 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permiso de Internet para conectarse al backend -->
+    <!-- Permiso de Internet: sin él la aplicación no puede salir a la red. -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        NOTA: NO se usa android:usesCleartextTraffic="true", porque habilitaría
+        el tráfico HTTP sin cifrar para toda la aplicación. En su lugar, el
+        atributo android:networkSecurityConfig de <application> apunta a
+        res/xml/network_security_config.xml, donde el tráfico en claro se
+        permite ÚNICAMENTE para los hosts del entorno de desarrollo
+        (10.0.2.2, 127.0.0.1 y localhost). Cualquier otro dominio exige HTTPS.
+    -->
 
     <application
         android:allowBackup="true"
@@ -14,7 +23,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AplicacionMovilBasica"
-        android:usesCleartextTraffic="true">
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".MainActivity"

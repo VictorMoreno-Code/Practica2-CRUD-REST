@@ -23,3 +23,7 @@ build/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Material de consulta del curso (presentación del profesor, enunciados, etc.).
+# Es material ajeno: se conserva en local pero NO se versiona.
+docs/material-del-curso/

@@ -12,9 +12,9 @@
 | **Unidad de aprendizaje** | Desarrollo de aplicaciones móviles nativas |
 | **Práctica** | Práctica 2: Aplicación móvil básica para operaciones CRUD con un servicio REST |
 | **Alumno** | Moreno López Victor Eduardo |
-| **Número de boleta** | `2024630639` <!-- TODO: escribe aquí tu boleta --> |
+| **Número de boleta** | `2024630639`  |
 | **Grupo** | 7CV4 |
-| **Profesor** | `Gabriel Hurtado Avilés` <!-- TODO: escribe aquí el nombre del profesor --> |
+| **Profesor** | `Gabriel Hurtado Avilés` |
 | **Fecha de entrega** | 18 de septiembre de 2026 |
 | **Repositorio** | https://github.com/VictorMoreno-Code/Practica2-CRUD-REST |
 
@@ -200,7 +200,8 @@ Practica2_Moviles/
     ├── app/build.gradle.kts   ← dependencias + tarea automática `adbReverse`
     ├── gradle/libs.versions.toml
     └── app/src/main/
-        ├── AndroidManifest.xml            ← permiso INTERNET y cleartext traffic
+        ├── AndroidManifest.xml            ← permiso INTERNET y configuración de red
+        ├── res/xml/network_security_config.xml  ← tráfico en claro SOLO para el host local
         └── java/.../aplicacionmovilbasica/
             ├── MainActivity.kt            ← UI completa en Compose (menú, login, registro, CRUD)
             ├── ApiService.kt              ← interfaz Retrofit: los 7 endpoints
@@ -225,10 +226,11 @@ exigen la cabecera `Authorization: Bearer <access_token>`.
 | 1 | `GET` | `/` | — | Verificación de que la API está viva | `200` | — |
 | 2 | `POST` | `/register` | — | Registrar un usuario nuevo | `201` | `400` |
 | 3 | `POST` | `/login` | — | Iniciar sesión y obtener el token | `200` | `400`, `401` |
-| 4 | `GET` | `/tasks` | 🔒 | Leer todas las tareas del usuario | `200` | `401` |
-| 5 | `POST` | `/tasks` | 🔒 | Crear una tarea | `201` | `400`, `401` |
-| 6 | `PUT` | `/tasks/<id>` | 🔒 | Actualizar una tarea existente | `200` | `400`, `401`, `404` |
-| 7 | `DELETE` | `/tasks/<id>` | 🔒 | Borrar una tarea | `200` | `401`, `404` |
+| 4 | `GET` | `/tasks` | 🔒 | Leer **todas** las tareas del usuario | `200` | `401` |
+| 5 | `GET` | `/tasks/<id>` | 🔒 | Leer **una** tarea por su identificador | `200` | `401`, `404` |
+| 6 | `POST` | `/tasks` | 🔒 | Crear una tarea | `201` | `400`, `401` |
+| 7 | `PUT` | `/tasks/<id>` | 🔒 | Actualizar una tarea existente | `200` | `400`, `401`, `404` |
+| 8 | `DELETE` | `/tasks/<id>` | 🔒 | Borrar una tarea | `200` | `401`, `404` |
 
 ---
 
@@ -317,7 +319,7 @@ curl -X POST http://127.0.0.1:5000/login \
 
 ---
 
-#### 4. `GET /tasks` 🔒 — Leer tareas
+#### 4. `GET /tasks` 🔒 — Leer todas las tareas
 
 **Petición**
 
@@ -347,7 +349,38 @@ curl http://127.0.0.1:5000/tasks \
 
 ---
 
-#### 5. `POST /tasks` 🔒 — Crear tarea
+#### 5. `GET /tasks/<id>` 🔒 — Leer una tarea
+
+Devuelve **un solo** registro, identificado por su llave primaria.
+
+**Petición**
+
+```bash
+curl http://127.0.0.1:5000/tasks/1 \
+     -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta `200 OK`**
+
+```json
+{
+  "task": { "id": 1, "title": "Tarea 1", "description": "demo", "status": "pending", "user_id": 1 }
+}
+```
+
+**Respuesta `404 Not Found`** (el id no existe **o la tarea es de otro usuario**)
+
+```json
+{ "error": "Tarea no encontrada" }
+```
+
+> Se responde `404` y no `403` a propósito: si contestara "prohibido", el cliente sabría
+> que ese registro existe y solo le falta permiso. Con `404`, las tareas de otros usuarios
+> son indistinguibles de las que no existen.
+
+---
+
+#### 6. `POST /tasks` 🔒 — Crear tarea
 
 **Parámetros del cuerpo (JSON)**
 
@@ -383,7 +416,7 @@ curl -X POST http://127.0.0.1:5000/tasks \
 
 ---
 
-#### 6. `PUT /tasks/<id>` 🔒 — Actualizar tarea
+#### 7. `PUT /tasks/<id>` 🔒 — Actualizar tarea
 
 Actualización **parcial**: solo se modifican los campos que se envíen.
 
@@ -413,7 +446,7 @@ curl -X PUT http://127.0.0.1:5000/tasks/1 \
 
 ---
 
-#### 7. `DELETE /tasks/<id>` 🔒 — Borrar tarea
+#### 8. `DELETE /tasks/<id>` 🔒 — Borrar tarea
 
 **Petición**
 
@@ -531,7 +564,8 @@ docker compose down -v       # además borra los datos persistidos
 | `container_name: tasks-api` | Nombre fijo del contenedor, para poder hacer `docker logs tasks-api` sin adivinar un identificador aleatorio. |
 | `ports: - "5000:5000"` | Publica el puerto 5000 **del contenedor** en el puerto 5000 **del equipo anfitrión**, en todas sus interfaces de red. Es lo que permite que el emulador o un teléfono de la misma red alcancen la API. |
 | `environment:` | Inyecta las variables de entorno. Cada una usa la forma `${VARIABLE:-valor_por_defecto}`, de modo que si existe un `.env` en la carpeta se toman sus valores y, si no existe, se usan los valores por defecto **sin que el comando falle**. |
-| `volumes: - ./data:/app/data` | Monta la carpeta `./data` del equipo anfitrión dentro del contenedor en `/app/data`. Ahí vive el archivo SQLite, así que **los usuarios y tareas sobreviven** aunque el contenedor se destruya y se vuelva a crear. |
+| `volumes: - datos:/app/data` | Monta un **volumen con nombre** (`datos`) en `/app/data`, que es donde vive el archivo SQLite. A diferencia de montar una carpeta del proyecto, este volumen lo administra Docker **fuera del árbol del repositorio**: los datos sobreviven a `docker compose down` y a la destrucción del contenedor, y aun así no pueden colarse en un commit. |
+| `volumes:` (nivel superior) | Declara el volumen `datos`. Docker lo crea la primera vez que se levanta el proyecto. Para eliminarlo a propósito, junto con todos los datos: `docker compose down -v`. |
 | `healthcheck:` | Cada 10 segundos ejecuta dentro del contenedor una petición al endpoint raíz. Si responde `200`, Docker marca el servicio como *healthy*; así `docker compose ps` distingue entre "el proceso arrancó" y "la API realmente contesta". |
 | `restart: unless-stopped` | Si el proceso se cae o se reinicia la computadora, Docker vuelve a levantar el contenedor automáticamente, salvo que se haya detenido a mano. |
 
@@ -559,17 +593,32 @@ tiempo **no hay ni un solo secreto escrito en el repositorio**.
 cambia y los tokens emitidos antes dejan de ser válidos: hay que volver a iniciar sesión.
 Se documenta cómo evitarlo creando un `.env` propio.
 
-#### B) Ruta absoluta para la base de datos
+#### B) Persistencia: volumen con nombre y ruta absoluta
 
-Flask-SQLAlchemy 3.x resuelve las rutas SQLite **relativas** contra la carpeta `instance/`
-de la aplicación, **no** contra el directorio de trabajo. Una URI como
-`sqlite:///data/app.db` termina apuntando a `/app/instance/data/app.db`, que **no es** la
-carpeta montada como volumen: la base parecería funcionar, pero se perdería al recrear el
-contenedor.
+Aquí hubo dos problemas encadenados.
 
-Por eso `app.py` construye siempre una **ruta absoluta** a partir de la ubicación real del
-archivo, dando `/app/data/app.db` dentro del contenedor, que sí coincide con el volumen
-`./data:/app/data`. La persistencia queda garantizada y verificada (ver QA, prueba 15).
+**El primero: la base no caía donde parecía.** Flask-SQLAlchemy 3.x resuelve las rutas
+SQLite **relativas** contra la carpeta `instance/` de la aplicación, **no** contra el
+directorio de trabajo. Una URI como `sqlite:///data/app.db` termina apuntando a
+`/app/instance/data/app.db`, que no es la carpeta persistida: la base parecería funcionar,
+pero se perdería al recrear el contenedor. Por eso `app.py` construye siempre una **ruta
+absoluta** a partir de la ubicación real del archivo, dando `/app/data/app.db`.
+
+**El segundo: dónde vive esa carpeta.** La primera versión montaba una carpeta del propio
+proyecto (`./data:/app/data`). Funciona, pero deja el archivo de la base **dentro del árbol
+del repositorio**, a un `git add -A` distraído de acabar publicado con los usuarios reales
+adentro. La versión actual usa un **volumen con nombre** (`datos:/app/data`), que Docker
+administra fuera del proyecto.
+
+**Ventajas.** Los datos sobreviven a `docker compose down` igual que antes, pero ya no
+existe forma de subirlos por accidente, y el repositorio no se ensucia con carpetas
+generadas en tiempo de ejecución.
+**Desventaja.** El archivo ya no se puede abrir directamente con un explorador de archivos:
+hay que entrar al contenedor (`docker exec -it tasks-api ...`) o inspeccionar el volumen con
+`docker volume inspect backend_datos`. Es justamente lo que se hace en la captura 18.
+
+La persistencia está verificada destruyendo el contenedor a propósito (ver QA, prueba 15,
+y la captura 19).
 
 #### C) Resolución automática de la dirección del backend (`127.0.0.1` / `10.0.2.2`)
 
@@ -606,6 +655,42 @@ una cabecera `Authorization` en lugar de una cookie automática (lo que lo hace 
 CSRF), y es el mecanismo estándar para clientes móviles, que no tienen un gestor de
 cookies como el navegador.
 
+#### E) Tráfico en claro acotado, en vez de `usesCleartextTraffic`
+
+**Problema.** Desde Android 9 (API 28) el sistema bloquea por omisión todo el tráfico HTTP
+sin cifrar. El backend de esta práctica corre en HTTP dentro de un contenedor local, así
+que hay que permitirlo de alguna forma.
+
+**Solución adoptada.** La salida rápida es poner `android:usesCleartextTraffic="true"` en
+el manifiesto, pero eso habilita HTTP sin cifrar para **cualquier dominio**: un error de
+configuración bastaría para que la aplicación enviara credenciales en claro a un servidor
+de internet. En su lugar se declara un archivo
+`res/xml/network_security_config.xml` que permite tráfico en claro **únicamente** para
+`10.0.2.2`, `127.0.0.1` y `localhost` —los tres hosts con los que el dispositivo alcanza al
+equipo de desarrollo— y lo prohíbe para todo lo demás:
+
+```xml
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
+```
+
+El manifiesto solo lo referencia:
+`android:networkSecurityConfig="@xml/network_security_config"`.
+
+**Ventajas.** La excepción queda acotada al entorno de desarrollo y documentada en un
+archivo propio; el resto de la aplicación sigue exigiendo HTTPS, que es el comportamiento
+correcto para producción.
+**Desventaja.** Si en el futuro se apunta la app a otra dirección (por ejemplo la IP local
+`192.168.x.x` de la computadora, para un teléfono por Wi-Fi), hay que agregar también ese
+host a la lista; con la bandera global no haría falta. Es un costo aceptable a cambio de no
+abrir el tráfico en claro por completo.
+
 ---
 
 ### 3.7 Proceso de QA (pruebas realizadas)
@@ -625,6 +710,10 @@ estado** y **cuerpo de la respuesta**.
 | 8 | `GET /tasks` **sin** cabecera `Authorization` | `401` + `"Falta el token de autorización"` | ✅ |
 | 9 | `GET /tasks` con un token manipulado | `401` + `"Token inválido"` | ✅ |
 | 10 | `POST /tasks` con token válido | `201` + tarea creada | ✅ |
+| 10a | `GET /tasks/<id>` de una tarea propia | `200` + esa sola tarea | ✅ |
+| 10b | `GET /tasks/<id>` de una tarea **de otro usuario** | `404` (no revela que existe) | ✅ |
+| 10c | `GET /tasks/999` (inexistente) | `404` + `"Tarea no encontrada"` | ✅ |
+| 10d | `GET /tasks/<id>` **sin** cabecera `Authorization` | `401` | ✅ |
 | 11 | `POST /tasks` sin `title` | `400` | ✅ |
 | 12 | `PUT /tasks/<id>` sobre una tarea propia | `200` + tarea actualizada | ✅ |
 | 13 | `PUT /tasks/999` (inexistente) | `404` + `"Tarea no encontrada"` | ✅ |
